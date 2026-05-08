@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Justk\OneDrive\Desktop\Новая папка (5)\TrueGraphDataBase\build\CMakeFiles\2e2db5bd1479e6c4a9076ea55529746a\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{3799D37F-162A-340A-AF6E-A90B5E03AB18}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,4 +1,5 @@
-#include "db.h"
+#include "tgdb.h"
+#include "iostream"
 
 TGDB db;
 
@@ -19,6 +20,14 @@ int main()
     ));
 
     db.print_node(player);
+
+    std::cout << "Trying to save-load and reading again...\n" << std::endl;
+
+    db.save("./example_db.tgdb");
+    db.load("./example_db.tgdb");
+    db.print_node(player);
+
+
 
     return 0;
 }

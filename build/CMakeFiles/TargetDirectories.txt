@@ -1,0 +1,3 @@
+C:/Users/Justk/OneDrive/Desktop/Новая папка (5)/TrueGraphDataBase/build/CMakeFiles/tgdb.dir
+C:/Users/Justk/OneDrive/Desktop/Новая папка (5)/TrueGraphDataBase/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Justk/OneDrive/Desktop/Новая папка (5)/TrueGraphDataBase/build/CMakeFiles/ZERO_CHECK.dir

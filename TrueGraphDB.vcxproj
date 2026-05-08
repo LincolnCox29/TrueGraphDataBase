@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\db.cpp" />
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="example.cpp" />
+    <ClCompile Include="src\tgdb.cpp" />
     <ClCompile Include="src\node.cpp" />
     <ClCompile Include="src\tgdb_out.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\db.h" />
+    <ClInclude Include="include\tgdb.h" />
     <ClInclude Include="include\node.h" />
     <ClInclude Include="include\tgdb_types.h" />
   </ItemGroup>

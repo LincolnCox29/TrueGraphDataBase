@@ -1,4 +1,28 @@
-#include "db.h"
+/*
+* MIT License
+*
+* Copyright (c) 2026 LincolnCox29
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
+#include "tgdb.h"
 #include <string>
 
 std::string TGDB::node_name(node_id id)
@@ -14,12 +38,14 @@ void TGDB::set_node_name(node_id id, const std::string& name)
     get(id).set_name(create<std::string>(name));
 }
 
-node_id TGDB::create_string_internal(const std::string& s) {
+node_id TGDB::create_string_internal(const std::string& s) 
+{
     node_id str_id = alloc(Type::STRING);
     if (s.empty()) return str_id;
 
     std::vector<node_id> chars;
-    for (char c : s) {
+    for (char c : s) 
+    {
         node_id char_id = alloc(Type::CHAR);
         get(char_id).set_raw_value(static_cast<uint8_t>(c));
         chars.push_back(char_id);
@@ -31,13 +57,15 @@ node_id TGDB::create_string_internal(const std::string& s) {
     return str_id;
 }
 
-std::string TGDB::read_string(node_id id) const {
+std::string TGDB::read_string(node_id id) const 
+{
     const Node& n = get(id);
     if (n.type() != Type::STRING)
         throw std::runtime_error("Not a string");
     std::string result;
     node_id cur = n.child();
-    while (cur != 0) {
+    while (cur != 0) 
+    {
         const Node& c = get(cur);
         result.push_back(static_cast<char>(c.raw_value()));
         cur = c.next();
@@ -45,26 +73,30 @@ std::string TGDB::read_string(node_id id) const {
     return result;
 }
 
-node_id TGDB::alloc(Type t) {
+node_id TGDB::alloc(Type t) 
+{
     node_id id = nodes.size();
     nodes.emplace_back();
     nodes.back().set_type(t);
     return id;
 }
 
-TGDB::TGDB() {
+TGDB::TGDB() 
+{
     nodes.emplace_back();
 }
 
 template<>
-node_id TGDB::create<int>(const int& value) {
+node_id TGDB::create<int>(const int& value) 
+{
     node_id id = alloc(Type::INT);
     get(id).set_raw_value(static_cast<uint64_t>(value));
     return id;
 }
 
 template<>
-node_id TGDB::create<double>(const double& value) {
+node_id TGDB::create<double>(const double& value) 
+{
     node_id id = alloc(Type::FLOAT);
     uint64_t raw;
     std::memcpy(&raw, &value, sizeof(raw));
@@ -73,12 +105,14 @@ node_id TGDB::create<double>(const double& value) {
 }
 
 template<>
-node_id TGDB::create<std::string>(const std::string& value) {
+node_id TGDB::create<std::string>(const std::string& value) 
+{
     return create_string_internal(value);
 }
 
 template<>
-int TGDB::get<int>(node_id id) const {
+int TGDB::get<int>(node_id id) const 
+{
     const Node& n = get(id);
     if (n.type() != Type::INT)
         throw std::runtime_error("Not an integer");
@@ -86,7 +120,8 @@ int TGDB::get<int>(node_id id) const {
 }
 
 template<>
-double TGDB::get<double>(node_id id) const {
+double TGDB::get<double>(node_id id) const 
+{
     const Node& n = get(id);
     if (n.type() != Type::FLOAT)
         throw std::runtime_error("Not a float");
