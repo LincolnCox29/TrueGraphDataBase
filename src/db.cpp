@@ -1,7 +1,5 @@
 #include "db.h"
 #include <string>
-#include <iostream>
-#include <functional>
 
 std::string TGDB::node_name(node_id id)
 {
@@ -106,21 +104,19 @@ std::string TGDB::get<std::string>(node_id id) const
 
 node_id TGDB::create_object(const std::string& type_name) 
 {
-    node_id obj = alloc(Type::VOID);
+    node_id obj = alloc(Type::STRUCT);
     set_node_name(obj, type_name);
     return obj;
 }
 
-void TGDB::add_property(node_id obj, const std::string& key, node_id value_id) 
+void TGDB::add_property(node_id obj, const std::string& key, node_id prop_id)
 {
-    node_id prop = alloc(Type::VOID);
-    set_node_name(prop, key);
-    Node& p = get(prop);
+    set_node_name(prop_id, key);
+    Node& p = get(prop_id);
     p.set_parent(obj);
-    p.set_child(value_id);
     Node& obj_node = get(obj);
     p.set_next(obj_node.child());
-    obj_node.set_child(prop);
+    obj_node.set_child(prop_id);
 }
 
 node_id TGDB::get_property(node_id obj, const std::string& key)
@@ -128,46 +124,9 @@ node_id TGDB::get_property(node_id obj, const std::string& key)
     node_id cur = get(obj).child();
     while (cur != 0) {
         const Node& prop = get(cur);
-        if (prop.type() == Type::VOID && node_name(cur) == key)
+        if (prop.type() == Type::STRUCT && node_name(cur) == key)
             return prop.child();
         cur = prop.next();
     }
     return 0;
-}
-
-void TGDB::print_node(node_id id)
-{
-    std::string output;
-    int tabs = 0;
-
-    std::function<void(node_id, std::string&, int&)> formStr;
-    formStr = [&](node_id cur_id, std::string& out, int& t)
-    {
-        node_id cur = cur_id;
-        Type type = get(cur_id).type();
-
-        while (cur != NULL_NODE)
-        {
-            if (type == Type::VOID)
-            {
-                for (int i = 0; i < t; ++i) out += "\t";
-                out += node_name(cur) + "\n";
-            }
-
-            node_id child = get(cur).child();
-            if (child != NULL_NODE)
-            {
-                ++t;
-                formStr(child, out, t);
-                --t;
-            }
-            cur = get(cur).next();
-        }
-    };
-
-    output += node_name(id) + "\n";
-    ++tabs;
-    node_id child = get(id).child();
-    if (child != NULL_NODE) formStr(child, output, tabs);
-    std::cout << output << std::endl;
 }

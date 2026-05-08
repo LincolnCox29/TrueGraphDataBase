@@ -1,5 +1,5 @@
 #pragma once
-#include "tgdbTypes.h"
+#include "tgdb_types.h"
 #include <iostream>
 
 using node_id = uint64_t;

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <iostream>
-#include "tgdbTypes.h"
+#include "tgdb_types.h"
 #include "node.h"
 
 static_assert(sizeof(Node) == 56, "Node size must be 56 bytes");
