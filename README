@@ -1,4 +1,3 @@
-```markdown
 # TGDB — True Graph Database
 
 TGDB is a minimalistic graph database implemented as a static C++17 library.  
@@ -105,4 +104,3 @@ This project is distributed under the **MIT License**. See the `LICENSE` file fo
 ## Author
 
 - **LincolnCox29** – [GitHub](https://github.com/LincolnCox29)
-```
