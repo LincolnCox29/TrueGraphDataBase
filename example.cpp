@@ -1,7 +1,7 @@
 #include "tgdb.h"
 #include "iostream"
 
-TGDB db;
+TGDB db("./db.tgdb", 64);
 
 node_id create_weapon(std::string name, std::string description, std::string attack_modifier, int damage);
 
@@ -20,15 +20,6 @@ int main()
     ));
 
     db.print_node(player);
-
-    std::cout << "Trying to save-load and reading again...\n" << std::endl;
-
-    db.save("./example_db.tgdb");
-    db.load("./example_db.tgdb");
-    db.print_node(player);
-
-
-
     return 0;
 }
 

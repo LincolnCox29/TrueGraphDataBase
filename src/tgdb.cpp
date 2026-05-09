@@ -24,6 +24,7 @@
 
 #include "tgdb.h"
 #include <string>
+#include <fstream>
 
 std::string TGDB::node_name(node_id id)
 {
@@ -75,15 +76,64 @@ std::string TGDB::read_string(node_id id) const
 
 node_id TGDB::alloc(Type t) 
 {
-    node_id id = nodes.size();
-    nodes.emplace_back();
-    nodes.back().set_type(t);
+    if (size() >= capacity_)
+        expand();
+    node_id id = next_id_++;
+    new (&base_[id]) Node();
+    base_[id].set_type(t);
+    base_[0].set_raw_value(size());
     return id;
 }
 
-TGDB::TGDB() 
+TGDB::TGDB(const std::string& path, uint64_t initial_capacity)
+    : filepath_(path)
 {
-    nodes.emplace_back();
+    std::ifstream check(path, std::ios::binary);
+    bool exists = check.good();
+    check.close();
+
+    std::error_code ec;
+
+    if (!exists) 
+    {
+        std::ofstream file(path, std::ios::binary | std::ios::trunc);
+        file.seekp(initial_capacity * sizeof(Node) - 1);
+        file.write("", 1);
+        file.close();
+
+        mmap_ = std::make_unique<mio::mmap_sink>(
+            mio::make_mmap_sink(path, 0, initial_capacity * sizeof(Node), ec)
+        );
+        if (ec) throw std::runtime_error(ec.message());
+
+        base_ = reinterpret_cast<Node*>(mmap_->data());
+        capacity_ = initial_capacity;
+        next_id_ = 1;
+
+        new (&base_[0]) Node();
+        base_[0].set_raw_value(next_id_);
+    }
+    else 
+    {
+        mmap_ = std::make_unique<mio::mmap_sink>(
+            mio::make_mmap_sink(path, 0, mio::map_entire_file, ec)
+        );
+        if (ec) throw std::runtime_error(ec.message());
+
+        base_ = reinterpret_cast<Node*>(mmap_->data());
+        capacity_ = mmap_->size() / sizeof(Node);
+        next_id_ = base_[0].raw_value();
+    }
+}
+
+TGDB::~TGDB() 
+{
+    try 
+    {
+        std::error_code ec;
+        mmap_->sync(ec);
+    }
+    catch (...) { }
 }
 
 template<>

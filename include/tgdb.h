@@ -31,13 +31,18 @@
 #include <iostream>
 #include "tgdb_types.h"
 #include "node.h"
+#include "mio/mio.hpp"
 
 static_assert(sizeof(Node) == 56, "Node size must be 56 bytes");
 
 class TGDB 
 {
 private:
-    std::vector<Node> nodes;
+    std::unique_ptr<mio::mmap_sink> mmap_;
+    Node* base_ = nullptr;
+    uint64_t capacity_ = 0;
+    uint64_t next_id_ = 1;
+    std::string filepath_;
 
     node_id create_string_internal(const std::string& s);
 
@@ -45,23 +50,30 @@ private:
 
     node_id alloc(Type t);
 
+    void expand();
+
 public:
-    TGDB();
+    ~TGDB();
+    TGDB(const std::string& path, uint64_t initial_capacity);
+
+    void close() { delete this; };
+
+    void sync();
 
     void print_node(node_id id);
 
     Node& get(node_id id) 
     {
-        if (id >= nodes.size())
-            throw std::out_of_range("node_id out of range");
-        return nodes[id];
+        if (id >= size()) 
+            throw std::out_of_range("node_id is out of range");
+        return base_[id];
     }
 
     const Node& get(node_id id) const 
     {
-        if (id >= nodes.size())
-            throw std::out_of_range("node_id out of range");
-        return nodes[id];
+        if (id >= size()) 
+            throw std::out_of_range("node_id is out of range");
+        return base_[id];
     }
 
     std::string node_name(node_id id);
@@ -74,16 +86,15 @@ public:
     template<typename T>
     T get(node_id id) const;
 
-
     node_id create_object(const std::string& type_name);
 
     void add_property(node_id obj, const std::string& key, node_id value_id);
 
     node_id get_property(node_id obj, const std::string& key);
 
-    void save(const std::string& filename) const;
+    inline size_t size() const { return next_id_; };
 
-    void load(const std::string& filename);
+    node_id by_name(std::string name);
 };
 
 template<> node_id TGDB::create<int>(const int&);
