@@ -83,31 +83,42 @@ void TGDB::print_node(node_id id)
     std::cout << output << std::endl;
 }
 
-void TGDB::save(const std::string& filename) const
+void TGDB::sync()
 {
-    std::ofstream file(filename, std::ios::binary | std::ios::trunc);
-    if (!file)
-        throw std::runtime_error("Cannot open file for writing");
-
-    size_t count = nodes.size();
-    file.write(reinterpret_cast<const char*>(&count), sizeof(count));
-    file.write(reinterpret_cast<const char*>(nodes.data()), count * sizeof(Node));
+    std::error_code ec;
+    mmap_->sync(ec);
+    if (ec)
+        throw std::runtime_error(ec.message());
 }
 
-void TGDB::load(const std::string& filename) 
-{
-    std::ifstream file(filename, std::ios::binary);
-    if (!file)
-        throw std::runtime_error("Cannot open file for reading");
+void TGDB::expand() {
+    uint64_t new_cap = capacity_ * 2;
+    std::string tmp_path = filepath_ + ".tmp";
+    {
+        std::ofstream tmp(tmp_path, std::ios::binary | std::ios::trunc);
+        tmp.seekp(new_cap * sizeof(Node) - 1);
+        tmp.write("", 1);
+    }
 
-    size_t count = 0;
-    file.read(reinterpret_cast<char*>(&count), sizeof(count));
-    if (!file)
-        throw std::runtime_error("Invalid file format");
+    std::error_code ec;
+    mio::mmap_sink new_mmap = mio::make_mmap_sink(tmp_path, 0, new_cap * sizeof(Node), ec);
+    if (ec) throw std::runtime_error("Expand: cannot map temp file: " + ec.message());
+    Node* new_base = reinterpret_cast<Node*>(new_mmap.data());
 
-    nodes.clear();
-    nodes.resize(count);
-    file.read(reinterpret_cast<char*>(nodes.data()), count * sizeof(Node));
-    if (!file)
-        throw std::runtime_error("Error reading node data, maybe file malfunctioned");
+    std::memcpy(new_base, base_, next_id_ * sizeof(Node));
+
+    std::memset(new_base + next_id_, 0, (new_cap - next_id_) * sizeof(Node));
+
+    new_mmap.unmap();
+    mmap_->unmap();
+
+    if (std::remove(filepath_.c_str()) != 0)
+        throw std::runtime_error("Expand: cannot remove old file");
+    if (std::rename(tmp_path.c_str(), filepath_.c_str()) != 0)
+        throw std::runtime_error("Expand: cannot rename temp file");
+
+    *mmap_ = mio::make_mmap_sink(filepath_, 0, new_cap * sizeof(Node), ec);
+    if (ec) throw std::runtime_error("Expand: cannot re-map new file: " + ec.message());
+    base_ = reinterpret_cast<Node*>(mmap_->data());
+    capacity_ = new_cap;
 }

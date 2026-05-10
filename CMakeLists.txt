@@ -10,4 +10,6 @@ add_library(tgdb STATIC
     src/tgdb_out.cpp
 )
 
+target_include_directories(tgdb PUBLIC thirdparty/mio/include)
+target_include_directories(tgdb PUBLIC thirdparty/mio/single_include)
 target_include_directories(tgdb PUBLIC include)
