@@ -27,7 +27,7 @@
     <ClCompile Include="example.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="search.cpp">
+    <ClCompile Include="src\tgdb_search.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

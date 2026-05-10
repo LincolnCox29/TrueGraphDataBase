@@ -94,7 +94,12 @@ public:
 
     inline size_t size() const { return next_id_; };
 
-    node_id by_name(std::string name);
+    node_id first_by_name(const std::string& name);
+    node_id first_by_name(node_id start, const std::string& name);
+
+    std::vector<node_id> all_by_name(const std::string& name);
+    std::vector<node_id> all_by_name(node_id start, const std::string& name);
+
 };
 
 template<> node_id TGDB::create<int>(const int&);

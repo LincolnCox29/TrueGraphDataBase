@@ -20,10 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="example.cpp" />
-    <ClCompile Include="search.cpp" />
     <ClCompile Include="src\tgdb.cpp" />
     <ClCompile Include="src\node.cpp" />
     <ClCompile Include="src\tgdb_out.cpp" />
+    <ClCompile Include="src\tgdb_search.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\tgdb.h" />

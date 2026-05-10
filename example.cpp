@@ -14,12 +14,30 @@ int main()
 
     db.add_property(player, "weapon", create_weapon(
         "halberd",
-        "a halberd shining with fire",
+        "halberd shining with fire",
         "burning",
         10
     ));
 
+    db.add_property(player, "weapon", create_weapon(
+        "sword",
+        "sword with poisonous blade",
+        "poisoning",
+        7
+    ));
+
+    std::cout << "Printing player node\n" << std::endl;
     db.print_node(player);
+
+    std::cout << "Find first weapon node by name\n" << std::endl;
+    node_id weapon_node = db.first_by_name("weapon");
+    db.print_node(weapon_node);
+
+    std::cout << "Find all weapon nodes by name\n" << std::endl;
+    std::vector<node_id> weapon_nodes = db.all_by_name("weapon");
+    for (node_id node : weapon_nodes)
+        db.print_node(node);
+
     return 0;
 }
 
