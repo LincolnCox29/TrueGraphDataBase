@@ -96,6 +96,7 @@ int main() {
 
 - `node_id create<T>(const T& value)` – create a value of type `int`, `double`, or `std::string`.
 - `T get<T>(node_id id) const` – read a value by its ID.
+- `void delete_node(node_id)` – delete a node by its ID.  
 
 ### Objects and properties
 

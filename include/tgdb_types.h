@@ -32,5 +32,6 @@ enum class Type : uint8_t
     STRING  = 3,
     CHAR    = 4,
     STRUCT  = 5,
-    DELETED = 6
+    DELETED = 6,
+    SYSTEM  = 7,
 };

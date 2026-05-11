@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#define DEBUG
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -42,6 +43,8 @@ private:
     Node* base_ = nullptr;
     uint64_t capacity_ = 0;
     uint64_t next_id_ = 1;
+    node_id dealloc_sequence_id;
+
     std::string filepath_;
 
     node_id create_string_internal(const std::string& s);
@@ -49,6 +52,10 @@ private:
     std::string read_string(node_id id) const;
 
     node_id alloc(Type t);
+
+    void dealloc(node_id);
+
+    node_id pop_dealloc_seq();
 
     void expand();
 
@@ -61,6 +68,8 @@ public:
     void sync();
 
     void print_node(node_id id);
+
+    void delete_node(node_id);
 
     Node& get(node_id id) 
     {

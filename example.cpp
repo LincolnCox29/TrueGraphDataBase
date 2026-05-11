@@ -8,23 +8,27 @@ node_id create_weapon(std::string name, std::string description, std::string att
 // MAIN FUNC FOR EXAMPLE
 int main() 
 {
-    node_id player = db.create_object("player");
-    db.add_property(player, "move_speed", db.create<int>(52));
-    db.add_property(player, "player_name", db.create<std::string>("Lincoln Cox"));
+    node_id player = db.first_by_name("player");
+    if (!player) 
+    {
+        player = db.create_object("player");
+        db.add_property(player, "move_speed", db.create<int>(52));
+        db.add_property(player, "player_name", db.create<std::string>("Lincoln Cox"));
 
-    db.add_property(player, "weapon", create_weapon(
-        "halberd",
-        "halberd shining with fire",
-        "burning",
-        10
-    ));
+        db.add_property(player, "weapon", create_weapon(
+            "halberd",
+            "halberd shining with fire",
+            "burning",
+            10
+        ));
 
-    db.add_property(player, "weapon", create_weapon(
-        "sword",
-        "sword with poisonous blade",
-        "poisoning",
-        7
-    ));
+        db.add_property(player, "weapon", create_weapon(
+            "sword",
+            "sword with poisonous blade",
+            "poisoning",
+            7
+        ));
+    }
 
     std::cout << "Printing player node\n" << std::endl;
     db.print_node(player);
@@ -37,6 +41,32 @@ int main()
     std::vector<node_id> weapon_nodes = db.all_by_name("weapon");
     for (node_id node : weapon_nodes)
         db.print_node(node);
+
+    std::cout << "Delete weapon node\n" << std::endl;
+
+    db.delete_node(weapon_node);
+    db.print_node(player);
+
+    db.add_property(player, "weapon", create_weapon(
+        "sword",
+        "sword with poisonous blade",
+        "poisoning",
+        7
+    ));
+
+    db.print_node(player);
+
+    for (int i = 10000; i != 0; i--)
+    {
+        db.add_property(player, "weapon", create_weapon(
+            "sword",
+            "sword with poisonous blade",
+            "poisoning",
+            7
+        ));
+        weapon_node = db.first_by_name("weapon");
+        db.delete_node(weapon_node);
+    }
 
     return 0;
 }

@@ -25,6 +25,7 @@
 #include "tgdb.h"
 #include <string>
 #include <fstream>
+#include <functional>
 
 std::string TGDB::node_name(node_id id)
 {
@@ -74,8 +75,16 @@ std::string TGDB::read_string(node_id id) const
     return result;
 }
 
-node_id TGDB::alloc(Type t) 
+node_id TGDB::alloc(Type t)
 {
+    node_id mem = pop_dealloc_seq();
+    if (mem != NULL_NODE)
+    {
+        new (&base_[mem]) Node();
+        base_[mem].set_type(t);
+        return mem;
+    }
+
     if (size() >= capacity_)
         expand();
     node_id id = next_id_++;
@@ -83,6 +92,99 @@ node_id TGDB::alloc(Type t)
     base_[id].set_type(t);
     base_[0].set_raw_value(size());
     return id;
+}
+
+node_id TGDB::pop_dealloc_seq()
+{
+    Node& dealloc_seq = get(dealloc_sequence_id);
+    node_id top_id = dealloc_seq.child();
+    if (top_id == NULL_NODE) return NULL_NODE;
+    Node& top = get(top_id);
+    node_id next_id = top.next();
+
+#ifdef DEBUG
+    std::cout << "Reuse this shit! :\n";
+    print_node(dealloc_sequence_id);
+#endif // DEBUG
+
+    dealloc_seq.set_child(next_id);
+    top.set_next(NULL_NODE);
+    return top_id;
+}
+
+void TGDB::dealloc(node_id id)
+{
+    Node& node = get(id);
+
+    node.set_child(NULL_NODE);
+    node.set_parent(NULL_NODE);
+    node.set_next(NULL_NODE);
+    node.set_prev(NULL_NODE);
+    node.set_name(NULL_NODE);
+    node.set_type(Type::SYSTEM);
+
+    Node& dealloc_seq = get(dealloc_sequence_id);
+    node_id old_head = dealloc_seq.child();
+    node.set_next(old_head);
+    dealloc_seq.set_child(id);
+}
+
+void TGDB::delete_node(node_id id)
+{
+    if (id == NULL_NODE) return;
+    Node& node = get(id);
+
+    node_id parent_id = node.parent();
+    node_id prev_id = node.prev();
+    node_id next_id = node.next();
+    node_id first_child = node.child();
+
+    if (prev_id != NULL_NODE) 
+    {
+        Node& prev = get(prev_id);
+        prev.set_next(next_id);
+    }
+    if (next_id != NULL_NODE) 
+    {
+        Node& next = get(next_id);
+        next.set_prev(prev_id);
+    }
+    if (parent_id != NULL_NODE) 
+    {
+        Node& parent = get(parent_id);
+        if (parent.child() == id)
+            parent.set_child(next_id);
+    }
+
+    std::vector<node_id> descendants;
+    std::function<void(node_id)> collect = [&](node_id start) 
+    {
+        node_id cur = start;
+        while (cur != NULL_NODE) 
+        {
+            descendants.push_back(cur);
+            Node& c = get(cur);
+
+            node_id name_id = c.name();
+            collect(c.name());
+            if (c.child() != NULL_NODE)
+                collect(c.child());
+            cur = c.next();
+        }
+    };
+    if (node.name() != NULL_NODE)
+        collect(node.name());
+    if (first_child != NULL_NODE) 
+        collect(first_child);
+
+
+    node.set_child(NULL_NODE);
+
+    for (node_id nid : descendants) 
+    {
+        dealloc(nid);
+    }
+    dealloc(id);
 }
 
 TGDB::TGDB(const std::string& path, uint64_t initial_capacity)
@@ -111,7 +213,11 @@ TGDB::TGDB(const std::string& path, uint64_t initial_capacity)
         next_id_ = 1;
 
         new (&base_[0]) Node();
-        base_[0].set_raw_value(next_id_);
+        base_[NULL_NODE].set_raw_value(next_id_);
+
+        node_id dealloc_seq_id = create_object("SYS_dealloc_seq");
+        base_[NULL_NODE].set_child(dealloc_seq_id);
+        this->dealloc_sequence_id = dealloc_seq_id;
     }
     else 
     {
@@ -122,7 +228,8 @@ TGDB::TGDB(const std::string& path, uint64_t initial_capacity)
 
         base_ = reinterpret_cast<Node*>(mmap_->data());
         capacity_ = mmap_->size() / sizeof(Node);
-        next_id_ = base_[0].raw_value();
+        next_id_ = base_[NULL_NODE].raw_value();
+        dealloc_sequence_id = base_[NULL_NODE].child();
     }
 }
 
@@ -201,6 +308,14 @@ void TGDB::add_property(node_id obj, const std::string& key, node_id prop_id)
     p.set_parent(obj);
     Node& obj_node = get(obj);
     p.set_next(obj_node.child());
+
+    node_id next_id = p.next();
+    if (next_id != NULL_NODE) 
+    {
+        Node& next = get(next_id);
+        next.set_prev(prop_id);
+    }
+
     obj_node.set_child(prop_id);
 }
 

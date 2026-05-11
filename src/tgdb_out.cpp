@@ -51,6 +51,11 @@ void TGDB::print_node(node_id id)
                     case Type::FLOAT: out += std::to_string(get<double>(cur)); break;
                     case Type::STRING: out += read_string(cur); break;
                 }
+#ifdef DEBUG
+                out += "prev : " + std::to_string(get(cur).prev()) +
+                       " next : " + std::to_string(get(cur).next()) +
+                       " child : " + std::to_string(get(cur).child());
+#endif // DEBUG
                 out += "\n";
             }
 
@@ -91,7 +96,8 @@ void TGDB::sync()
         throw std::runtime_error(ec.message());
 }
 
-void TGDB::expand() {
+void TGDB::expand()
+{
     uint64_t new_cap = capacity_ * 2;
     std::string tmp_path = filepath_ + ".tmp";
     {
