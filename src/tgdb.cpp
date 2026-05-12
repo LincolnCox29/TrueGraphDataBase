@@ -26,6 +26,7 @@
 #include <string>
 #include <fstream>
 #include <functional>
+#include <unordered_set>
 
 std::string TGDB::node_name(node_id id)
 {
@@ -37,7 +38,9 @@ std::string TGDB::node_name(node_id id)
 
 void TGDB::set_node_name(node_id id, const std::string& name)
 {
-    get(id).set_name(create<std::string>(name));
+    Node& node = get(id);
+    dealloc(node.name());
+    node.set_name(create<std::string>(name));
 }
 
 node_id TGDB::create_string_internal(const std::string& s) 
@@ -73,6 +76,24 @@ std::string TGDB::read_string(node_id id) const
         cur = c.next();
     }
     return result;
+}
+
+size_t TGDB::__live_nodes_debug()
+{
+    std::unordered_set<node_id> freed;
+    node_id cur = get(dealloc_sequence_id).child();
+    while (cur != NULL_NODE)
+    {
+        freed.insert(cur);
+        cur = get(cur).next();
+    }
+
+    size_t count = 0;
+    for (node_id id = 1; id < next_id_; ++id)
+    {
+        if (freed.find(id) == freed.end()) count++;
+    }
+    return count;
 }
 
 node_id TGDB::alloc(Type t)
@@ -112,16 +133,34 @@ node_id TGDB::pop_dealloc_seq()
     return top_id;
 }
 
-void TGDB::dealloc(node_id id)
+void TGDB::dealloc(node_id id) 
 {
+    if (id == NULL_NODE) return;
     Node& node = get(id);
+
+    if (node.name() != NULL_NODE) 
+    {
+        dealloc(node.name());
+    }
+
+    if (node.child() != NULL_NODE) 
+    {
+        node_id cur = node.child();
+        while (cur != NULL_NODE) 
+        {
+            node_id next = get(cur).next();
+            dealloc(cur);
+            cur = next;
+        }
+    }
 
     node.set_child(NULL_NODE);
     node.set_parent(NULL_NODE);
     node.set_next(NULL_NODE);
     node.set_prev(NULL_NODE);
     node.set_name(NULL_NODE);
-    node.set_type(Type::SYSTEM);
+    node.set_type(Type::DELETED);
+    node.set_raw_value(0);
 
     Node& dealloc_seq = get(dealloc_sequence_id);
     node_id old_head = dealloc_seq.child();
@@ -137,53 +176,15 @@ void TGDB::delete_node(node_id id)
     node_id parent_id = node.parent();
     node_id prev_id = node.prev();
     node_id next_id = node.next();
-    node_id first_child = node.child();
 
-    if (prev_id != NULL_NODE) 
-    {
-        Node& prev = get(prev_id);
-        prev.set_next(next_id);
-    }
-    if (next_id != NULL_NODE) 
-    {
-        Node& next = get(next_id);
-        next.set_prev(prev_id);
-    }
+    if (prev_id != NULL_NODE) get(prev_id).set_next(next_id);
+    if (next_id != NULL_NODE) get(next_id).set_prev(prev_id);
     if (parent_id != NULL_NODE) 
     {
         Node& parent = get(parent_id);
-        if (parent.child() == id)
-            parent.set_child(next_id);
+        if (parent.child() == id) parent.set_child(next_id);
     }
 
-    std::vector<node_id> descendants;
-    std::function<void(node_id)> collect = [&](node_id start) 
-    {
-        node_id cur = start;
-        while (cur != NULL_NODE) 
-        {
-            descendants.push_back(cur);
-            Node& c = get(cur);
-
-            node_id name_id = c.name();
-            collect(c.name());
-            if (c.child() != NULL_NODE)
-                collect(c.child());
-            cur = c.next();
-        }
-    };
-    if (node.name() != NULL_NODE)
-        collect(node.name());
-    if (first_child != NULL_NODE) 
-        collect(first_child);
-
-
-    node.set_child(NULL_NODE);
-
-    for (node_id nid : descendants) 
-    {
-        dealloc(nid);
-    }
     dealloc(id);
 }
 

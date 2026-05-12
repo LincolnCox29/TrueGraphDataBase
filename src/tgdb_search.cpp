@@ -16,7 +16,7 @@ node_id TGDB::first_by_name(node_id start, const std::string& name)
 
             Node& cur = get(cur_id);
 
-            if (node_name(cur_id) == name)
+            if (node_name(cur_id) == name && !is_dealloced(cur_id))
             {
                 res = cur_id;
                 return;
@@ -41,7 +41,7 @@ node_id TGDB::first_by_name(const std::string& name)
 {
     for (node_id id = 1; id < next_id_; ++id)
     {
-        if (node_name(id) == name)
+        if (node_name(id) == name && !is_dealloced(id))
             return id;
     }
     return NULL_NODE;
@@ -58,7 +58,7 @@ std::vector<node_id> TGDB::all_by_name(node_id start, const std::string& name)
         {
             Node& cur = get(cur_id);
 
-            if (node_name(cur_id) == name)
+            if (node_name(cur_id) == name && !is_dealloced(cur_id))
             {
                 res.push_back(cur_id);
             }
@@ -83,7 +83,7 @@ std::vector<node_id> TGDB::all_by_name(const std::string& name)
     std::vector<node_id> result;
     for (node_id id = 1; id < next_id_; ++id) 
     {
-        if (node_name(id) == name)
+        if (node_name(id) == name && !is_dealloced(id))
             result.push_back(id);
     }
     return result;

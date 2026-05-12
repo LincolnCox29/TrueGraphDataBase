@@ -32,6 +32,11 @@ void TGDB::print_node(node_id id)
     std::string output;
     int tabs = 0;
 
+#ifndef DEBUG
+    if (id == NULL_NODE || id == dealloc_sequence_id || is_dealloced(id))
+        throw std::runtime_error("Node printing: access denied");
+#endif // !DEBUG
+
     std::function<void(node_id, std::string&, int&)> formStr;
     formStr = [&](node_id cur_id, std::string& out, int& t)
     {
@@ -51,11 +56,6 @@ void TGDB::print_node(node_id id)
                     case Type::FLOAT: out += std::to_string(get<double>(cur)); break;
                     case Type::STRING: out += read_string(cur); break;
                 }
-#ifdef DEBUG
-                out += "prev : " + std::to_string(get(cur).prev()) +
-                       " next : " + std::to_string(get(cur).next()) +
-                       " child : " + std::to_string(get(cur).child());
-#endif // DEBUG
                 out += "\n";
             }
 

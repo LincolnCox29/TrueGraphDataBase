@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#define DEBUG
+//#define DEBUG
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -60,8 +60,12 @@ private:
     void expand();
 
 public:
+    size_t __live_nodes_debug();
+
     ~TGDB();
     TGDB(const std::string& path, uint64_t initial_capacity);
+
+    inline bool is_dealloced(node_id id) const { return get(id).type() == Type::DELETED; }
 
     void close() { delete this; };
 
