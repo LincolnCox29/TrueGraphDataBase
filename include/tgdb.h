@@ -24,6 +24,7 @@
 
 #pragma once
 //#define DEBUG
+#define NOMINMAX
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -39,6 +40,7 @@ static_assert(sizeof(Node) == 56, "Node size must be 56 bytes");
 class TGDB 
 {
 private:
+
     std::unique_ptr<mio::mmap_sink> mmap_;
     Node* base_ = nullptr;
     uint64_t capacity_ = 0;
@@ -46,8 +48,6 @@ private:
     node_id dealloc_sequence_id;
 
     std::string filepath_;
-
-    node_id create_string_internal(const std::string& s);
 
     std::string read_string(node_id id) const;
 
@@ -59,7 +59,11 @@ private:
 
     void expand();
 
+    void pack_char_chunk(node_id str_id, const std::string& str);
+    std::string unpack_char_chunk(node_id str_id) const;
+
 public:
+
     size_t __live_nodes_debug();
 
     ~TGDB();
@@ -82,7 +86,7 @@ public:
         return base_[id];
     }
 
-    const Node& get(node_id id) const 
+    const Node& get(node_id id) const
     {
         if (id >= size()) 
             throw std::out_of_range("node_id is out of range");

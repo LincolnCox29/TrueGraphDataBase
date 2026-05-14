@@ -60,7 +60,11 @@ void TGDB::print_node(node_id id)
             }
 
             node_id child = get(cur).child();
+#ifdef DEBUG
             if (child != NULL_NODE)
+#else
+            if (child != NULL_NODE && type != Type::STRING)
+#endif // !DEBUG
             {
                 ++t;
                 formStr(child, out, t);

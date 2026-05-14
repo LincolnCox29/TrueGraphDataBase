@@ -26,7 +26,7 @@ int main()
     db.add_property(player, "weapon", weapon);
     db.print_node(player);
 
-    std::cout << "Trying to find weapon node" << std::endl;
+    std::cout << "Trying to find weapon node by type name" << std::endl;
 
     weapon = db.first_by_name("weapon");
 

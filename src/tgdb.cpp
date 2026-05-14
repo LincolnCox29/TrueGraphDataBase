@@ -27,6 +27,7 @@
 #include <fstream>
 #include <functional>
 #include <unordered_set>
+#define TGDB_CHUNK_SIZE 8
 
 std::string TGDB::node_name(node_id id)
 {
@@ -43,39 +44,12 @@ void TGDB::set_node_name(node_id id, const std::string& name)
     node.set_name(create<std::string>(name));
 }
 
-node_id TGDB::create_string_internal(const std::string& s) 
-{
-    node_id str_id = alloc(Type::STRING);
-    if (s.empty()) return str_id;
-
-    std::vector<node_id> chars;
-    for (char c : s) 
-    {
-        node_id char_id = alloc(Type::CHAR);
-        get(char_id).set_raw_value(static_cast<uint8_t>(c));
-        chars.push_back(char_id);
-    }
-    for (size_t i = 0; i < chars.size() - 1; ++i)
-        get(chars[i]).set_next(chars[i + 1]);
-
-    get(str_id).set_child(chars[0]);
-    return str_id;
-}
-
-std::string TGDB::read_string(node_id id) const 
+std::string TGDB::read_string(node_id id) const
 {
     const Node& n = get(id);
     if (n.type() != Type::STRING)
         throw std::runtime_error("Not a string");
-    std::string result;
-    node_id cur = n.child();
-    while (cur != 0) 
-    {
-        const Node& c = get(cur);
-        result.push_back(static_cast<char>(c.raw_value()));
-        cur = c.next();
-    }
-    return result;
+    return unpack_char_chunk(id);
 }
 
 size_t TGDB::__live_nodes_debug()
@@ -265,7 +239,13 @@ node_id TGDB::create<double>(const double& value)
 template<>
 node_id TGDB::create<std::string>(const std::string& value) 
 {
-    return create_string_internal(value);
+    node_id str_id = alloc(Type::STRING);
+    if (value.empty())
+        return str_id;
+
+    pack_char_chunk(str_id, value);
+
+    return str_id;
 }
 
 template<>
@@ -330,4 +310,55 @@ node_id TGDB::get_property(node_id obj, const std::string& key)
         cur = prop.next();
     }
     return 0;
+}
+
+void TGDB::pack_char_chunk(node_id str_id, const std::string& str)
+{
+    size_t size = str.size();
+    get(str_id).set_raw_value(size);
+
+    size_t chunk_count = (size + TGDB_CHUNK_SIZE - 1) / TGDB_CHUNK_SIZE;
+    if (chunk_count == 0) return;
+
+    node_id prev = NULL_NODE;
+    node_id first = NULL_NODE;
+
+    for (size_t i = 0; i < chunk_count; ++i)
+    {
+        node_id chunk = alloc(Type::INT);
+
+        if (prev != NULL_NODE)
+            get(prev).set_next(chunk);
+        else
+            first = chunk;
+
+        uint64_t blob = 0;
+        size_t offset = i * TGDB_CHUNK_SIZE;
+        size_t len = std::min(static_cast<size_t>(TGDB_CHUNK_SIZE), size - offset);
+        memcpy(&blob, str.data() + offset, len);
+        get(chunk).set_raw_value(blob);
+
+        prev = chunk;
+    }
+
+    get(str_id).set_child(first);
+}
+
+std::string TGDB::unpack_char_chunk(node_id str_id) const
+{
+    const Node& str_node = get(str_id);
+    size_t size = str_node.raw_value();
+    std::string out;
+
+    node_id cur = str_node.child();
+    while (cur != NULL_NODE)
+    {
+        uint64_t blob = get(cur).raw_value();
+        for (int c = 0; c < TGDB_CHUNK_SIZE; ++c)
+            out.push_back(static_cast<char>((blob >> (c * 8)) & 0xFF));
+        cur = get(cur).next();
+    }
+
+    out.resize(size);
+    return out;
 }
