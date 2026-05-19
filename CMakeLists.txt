@@ -8,6 +8,11 @@ add_library(tgdb STATIC
     src/tgdb.cpp
     src/node.cpp
     src/tgdb_out.cpp
+    src/tgdb_dealloc_seq.cpp
+    src/tgdb_ref.cpp
+    src/tgdb_out.cpp
+    src/tgdb_search.cpp
+    src/tgdb_string.cpp
 )
 
 target_include_directories(tgdb PUBLIC thirdparty/mio/include)
