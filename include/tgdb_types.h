@@ -34,5 +34,4 @@ enum class Type : uint8_t
     STRUCT  = 5,
     DELETED = 6,
     SYSTEM  = 7,
-    BUCKET  = 8 
 };

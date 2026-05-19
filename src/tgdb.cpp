@@ -219,6 +219,14 @@ TGDB::~TGDB()
 }
 
 template<>
+node_id TGDB::create<node_id>(const node_id& ref)
+{
+    node_id id = alloc(Type::INT);
+    get(id).set_raw_value(ref);
+    return id;
+}
+
+template<>
 node_id TGDB::create<int>(const int& value) 
 {
     node_id id = alloc(Type::INT);
@@ -284,10 +292,12 @@ node_id TGDB::create_object(const std::string& type_name)
 
 void TGDB::add_property(node_id obj, const std::string& key, node_id prop_id)
 {
+    Node& obj_node = get(obj);
+    if (obj_node.type() != Type::STRUCT)
+        throw std::runtime_error("Not a struct");
     set_node_name(prop_id, key);
     Node& p = get(prop_id);
     p.set_parent(obj);
-    Node& obj_node = get(obj);
     p.set_next(obj_node.child());
 
     node_id next_id = p.next();
@@ -303,7 +313,8 @@ void TGDB::add_property(node_id obj, const std::string& key, node_id prop_id)
 node_id TGDB::get_property(node_id obj, const std::string& key)
 {
     node_id cur = get(obj).child();
-    while (cur != 0) {
+    while (cur != 0) 
+    {
         const Node& prop = get(cur);
         if (prop.type() == Type::STRUCT && node_name(cur) == key)
             return prop.child();

@@ -63,4 +63,6 @@ private:
     node_id name_;
     uint64_t value_;
     Type type_;
+
+    uint64_t padding__;
 };

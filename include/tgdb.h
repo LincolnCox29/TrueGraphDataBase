@@ -35,7 +35,7 @@
 #include "node.h"
 #include "mio/mio.hpp"
 
-static_assert(sizeof(Node) == 56, "Node size must be 56 bytes");
+static_assert(sizeof(Node) == 64, "Node size must be 64 bytes");
 
 class TGDB 
 {
