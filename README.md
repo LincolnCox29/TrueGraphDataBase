@@ -6,7 +6,7 @@ The database is schema-less, supports basic types (`int`, `double`, `std::string
 
 ## Features
 
-- **Uniform node type** — 56 bytes, 5 pointer fields (`parent`, `child`, `prev`, `next`, `name`) and one 64‑bit data field.
+- **Uniform node type** — 64 bytes, 5 pointer fields (`parent`, `child`, `prev`, `next`, `name`), value field and 8 bytes padding.
 - **Built‑in types** — integers, floating‑point numbers, strings.
 - **Bidirectional links** — from parent to child and back.
 - **Disk persistence via mmap** — the entire database lives in a memory‑mapped file; use the `sync()` method for explicit disk synchronisation.
