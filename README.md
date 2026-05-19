@@ -111,15 +111,20 @@ int main() {
 
 ### Search & traversal
 
-- `node_id first_by_name(const std::string& name)` – global linear scan, returns the first node with the given name.
-- `node_id first_by_name(node_id start, const std::string& name)` – depth‑first traversal from `start` following `child` links, returns the first matching node.
-- `std::vector<node_id> all_by_name(const std::string& name)` – global scan, returns all nodes with that name.
-- `std::vector<node_id> all_by_name(node_id start, const std::string& name)` – local traversal from `start` following `child` links, returns all matching nodes.
+- `node_id first_by_name(const std::string& name)` - global linear scan, returns the first node with the given name.
+- `node_id first_by_name(node_id start, const std::string& name)` - depth‑first traversal from `start` following `child` links, returns the first matching node.
+- `std::vector<node_id> all_by_name(const std::string& name)` - global scan, returns all nodes with that name.
+- `std::vector<node_id> all_by_name(node_id start, const std::string& name)` - local traversal from `start` following `child` links, returns all matching nodes.
+
+### References
+
+- `node_id create<node_id>(const node_id& target)` -  creates a reference to target and returns ref ID.
+- `node_id get<node_id>(node_id id) const` - returns the target ID of the reference. Throws if id is not a reference.
 
 ### Direct node access (advanced)
 
-- `Node& get(node_id id)` / `const Node& get(node_id id) const` – direct access to a node by its index.
-- `size_t size() const` – returns the total number of allocated nodes (including the reserved null node).
+- `Node& get(node_id id)` / `const Node& get(node_id id) const` - direct access to a node by its index.
+- `size_t size() const` - returns the total number of allocated nodes (including the reserved null node).
 
 ### Data Types
 
@@ -136,4 +141,4 @@ This project is distributed under the **MIT License**. See the `LICENSE` file fo
 
 ## Author
 
-- **LincolnCox29** – [GitHub](https://github.com/LincolnCox29)
+- **LincolnCox29** - [GitHub](https://github.com/LincolnCox29)

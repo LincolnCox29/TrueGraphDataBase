@@ -1,7 +1,7 @@
 #include "tgdb.h"
 #include "iostream"
 
-TGDB db("./db.tgdb", 64);
+TGDB db("./example_db.tgdb", 64);
 
 node_id create_weapon(std::string name, std::string description, std::string attack_modifier, int damage);
 node_id create_player(std::string name, int age, float speed, node_id weapon_id);
@@ -9,28 +9,21 @@ node_id create_player(std::string name, int age, float speed, node_id weapon_id)
 // MAIN FUNC FOR EXAMPLE
 int main() 
 {
-    std::cout << "Create player"<< std::endl;
+    std::cout << "Create player weapon" << std::endl;
 
     node_id weapon = create_weapon("halberd", "halberd shining with fire", "burning", 10);
-    node_id player = create_player("Lincoln Cox", 18, 0.5, weapon);
-    db.print_node(player);
-
-    std::cout << "Deleat weapon" << std::endl;
-
-    db.delete_node(weapon);
-    db.print_node(player);
-
-    std::cout << "Add weapon struct again" << std::endl;
-
-    weapon = create_weapon("halberd", "halberd shining with fire", "burning", 10);
-    db.add_property(player, "weapon", weapon);
-    db.print_node(player);
-
-    std::cout << "Trying to find weapon node by type name" << std::endl;
-
-    weapon = db.first_by_name("weapon");
-
     db.print_node(weapon);
+
+    std::cout << "Create players"<< std::endl;
+
+    node_id player1 = create_player("Lincoln Cox", 20, 0.85, weapon);
+    node_id player2 = create_player("Goonking", 18, 0.7, weapon);
+    db.print_node(player1);
+    db.print_node(player2);
+
+    std::cout << "Get weapon node by ref from player node" << std::endl;
+    weapon = db.first_by_name(player1, "weapon");
+    db.print_node(db.get<node_id>(weapon));
 
     return 0;
 }
@@ -41,7 +34,7 @@ node_id create_player(std::string name, int age, float speed, node_id weapon_id)
     db.add_property(player, "name", db.create<std::string>(name));
     db.add_property(player, "age", db.create<int>(age));
     db.add_property(player, "speed", db.create<double>(speed));
-    db.add_property(player, "weapon", weapon_id);
+    db.add_property(player, "weapon", db.create<node_id>(weapon_id));
 
     return player;
 }

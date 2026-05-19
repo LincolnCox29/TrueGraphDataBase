@@ -55,6 +55,7 @@ void TGDB::print_node(node_id id)
                     case Type::INT: out += std::to_string(get<int>(cur)); break;
                     case Type::FLOAT: out += std::to_string(get<double>(cur)); break;
                     case Type::STRING: out += read_string(cur); break;
+                    case Type::REF: out += "&" + std::to_string(get<node_id>(cur)); break;
                 }
                 out += "\n";
             }
